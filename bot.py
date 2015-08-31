@@ -4,10 +4,10 @@ import urllib
 import io
 from picture_pallet import Palette
 
-api = twitter.Api(consumer_key='faqiNoOyUonfihuaxeT7Grd94',
-                  consumer_secret='QLBEHu2lqJqzcgREF9HwQswevKRZ7j86uErwiTQ0El4SGCKYAj',
-                  access_token_key='3478266803-RLjVpSVpUfs4GvnlE7MEizMfS94zdbSIc1bVdGd',
-                  access_token_secret='llSbkP6PP63PaWkHQOeT9A0BkpmQKbeSoyVSU8xp8MfNr')
+api = twitter.Api(consumer_key='',
+                  consumer_secret='',
+                  access_token_key='',
+                  access_token_secret='')
 
 
 def get_last():
