@@ -17,6 +17,9 @@ def get_last():
 
 
 def reply_to(m):
+    if len(m['media']) < 2:
+        api.PostUpdate('Sorry @%s! I need two pictures!', in_reply_to_status_id=m['id'])
+        return
     fd = urllib.urlopen(m['media'][0]['media_url_https'])
     image_file = io.BytesIO(fd.read())
     im = Image.open(image_file).convert('RGB')
