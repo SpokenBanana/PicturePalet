@@ -7,7 +7,7 @@ def get_similarity(color1, color2):
     return math.fabs(color1[0] - color2[0]) + math.fabs(color1[1] - color2[1]) + math.fabs(color1[2] - color2[2])
 
 
-class Palette():
+class Palette:
     def __init__(self, first, second):
         self.palette = {'image': first}
         self.dest = {'image': second}
@@ -20,17 +20,6 @@ class Palette():
         self.palette['colors'] = [[x[0], x[1]] for x in first.getcolors(1000000)]
         self.dest['colors'] = [[x[0], x[1]] for x in second.getcolors(1000000)]
 
-    # return the color most close to the color given
-    def get_similar_color(self, color):
-        ranks = [get_similarity(color, x[1]) for x in self.palette['colors']]
-        index = ranks.index(min(ranks))
-
-        self.palette['colors'][index][0] -= 1
-        if self.palette['colors'][index][0] <= 0:
-            return self.palette['colors'].pop(index)[1]
-
-        return self.palette['colors'][index][1]
-
     def generate_picture(self, file_name="image.png"):
         # need to fit the pallet to the destination image to make sure we have enough pixels
         self.palette['image'] = self.palette['image'].resize((self.dest['image'].size[0], self.dest['image'].size[1]),
@@ -38,7 +27,7 @@ class Palette():
         self.dest['image'].paste(self.palette['image'], (0, 0))
 
         # each iteration we will randomly switch two pixels if they bring us closer to the destination image
-        for i in xrange(2000000):
+        for i in xrange(500000):
             first = (random.randrange(0, self.dest['image'].size[0]),
                      random.randrange(0, self.dest['image'].size[1]))
             second = (random.randrange(0, self.dest['image'].size[0]),
@@ -50,9 +39,8 @@ class Palette():
 
             if get_similarity(original_first, dest_first) + get_similarity(original_second, dest_second) > \
                             get_similarity(original_first, dest_second) + get_similarity(original_second, dest_first):
-                temp_color = self.dest['image'].getpixel(first)
-                self.dest['image'].putpixel(first, self.dest['image'].getpixel(second))
-                self.dest['image'].putpixel(second, temp_color)
+                self.dest['image'].putpixel(first, dest_second)
+                self.dest['image'].putpixel(second, dest_first)
 
         self.dest['image'].save(file_name)
         return file_name
