@@ -16,17 +16,19 @@ def get_last():
     return last
 
 
+def get_image(mention_media):
+    fd = urllib.urlopen(mention_media['media_url_https'])
+    image_file = io.BytesIO(fd.read())
+    return Image.open(image_file).convert('RGB')
+
+
 def reply_to(m):
     if len(m['media']) < 2:
         api.PostUpdate('Sorry @%s! I need two pictures!', in_reply_to_status_id=m['id'])
         return
-    fd = urllib.urlopen(m['media'][0]['media_url_https'])
-    image_file = io.BytesIO(fd.read())
-    im = Image.open(image_file).convert('RGB')
 
-    fd = urllib.urlopen(m['media'][1]['media_url_https'])
-    image_file = io.BytesIO(fd.read())
-    im2 = Image.open(image_file).convert('RGB')
+    im = get_image(m['media'][0])
+    im2 = get_image(m['media'][1])
 
     palette = Palette(im, im2).generate_picture()
 
@@ -41,11 +43,14 @@ def start():
     print "{0:d} mentions.".format(len(mentions))
 
     for mention in mentions:
-        asdict = mention.AsDict()
-        print 'replying to %s' % asdict['user']['screen_name']
-        reply_to(asdict)
-        with open('last.txt', 'w') as f:
-            f.write(str(asdict['id']))
-        print 'replied to %s' % asdict['user']['screen_name']
+        as_dict = mention.AsDict()
+        print 'replying to %s' % as_dict['user']['screen_name']
+        reply_to(as_dict)
 
-start()
+        # keep track of the last mention replied to so we don't reply to someone twice
+        with open('last.txt', 'w') as f:
+            f.write(str(as_dict['id']))
+        print 'replied to %s' % as_dict['user']['screen_name']
+
+if __name__ == '__main__':
+    start()
