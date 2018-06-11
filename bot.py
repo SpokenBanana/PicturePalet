@@ -4,19 +4,20 @@ import urllib
 import io
 import os
 from picture_pallet import Palette
+from firebase import firebase
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 api = twitter.Api(consumer_key=os.environ['TWITTER_KEY'],
                   consumer_secret=os.environ['TWITTER_SECRET'],
                   access_token_key=os.environ['TWITTER_TOKEN'],
                   access_token_secret=os.environ['TWITTER_TOKEN_SECRET'])
+cursor = firebase.FirebaseApplication(os.environ['FIREBASE_URL'])
+sched = BlockingScheduler()
 
 
 def get_last():
-    if not os.path.isfile('last.txt'):
-        return None
-    with open('last.txt', 'r+') as last_file:
-        last = last_file.readline().strip()
-    return last
+    last = cursor.get('', 'last', connection=None)
+    return last if last else None
 
 
 def get_image(mention_media):
@@ -42,9 +43,9 @@ def reply_to(mention):
                    in_reply_to_status_id=mention['id'], media=palette)
 
 
+@sched.scheduled_job('interval', minutes=10)
 def start():
     last = get_last()
-
     mentions = api.GetMentions(since_id=last)
 
     print("{0:d} mentions.".format(len(mentions)))
@@ -57,9 +58,8 @@ def start():
 
     # keep track of the last mention replied to
     if len(mentions):
-        with open('last.txt', 'w') as last_file:
-            last_file.write(str(mentions[0].id))
+        cursor.put('', 'last', str(mentions[0].id), connection=None)
 
 
 if __name__ == '__main__':
-    start()
+    sched.start()
