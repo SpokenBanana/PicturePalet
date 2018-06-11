@@ -1,7 +1,9 @@
 from PIL import Image
 import random
+import numba
 
 
+@numba.jit(nopython=True)
 def color_diff(color1, color2):
     mean = (color1[0] + color2[0]) // 2
     r = color1[0] - color2[0]
@@ -20,7 +22,7 @@ class Palette:
         self.original = Image.new('RGB', second.size, 'white')
         self.original.paste(second, (0, 0))
 
-    def generate_picture(self, file_name="/tmp/image.png"):
+    def generate_picture(self, file_name="/tmp/image.png", iterations=2000000):
         size = list(self.destination.size)
         if size[0] > 700:
             aspect = size[1] / float(size[0])
@@ -36,22 +38,24 @@ class Palette:
         self.palette = self.palette.resize(size, Image.BILINEAR).convert('RGB')
         self.destination.paste(self.palette, (0, 0))
 
-        # randomly switch two pixels if they bring us closer to the image
-        for i in range(1000000):
-            first = (random.randrange(0, self.destination.size[0]),
-                     random.randrange(0, self.destination.size[1]))
-            second = (random.randrange(0, self.destination.size[0]),
-                      random.randrange(0, self.destination.size[1]))
-            original_first = self.original.getpixel(first)
-            original_second = self.original.getpixel(second)
-            dest_first = self.destination.getpixel(first)
-            dest_second = self.destination.getpixel(second)
-            if color_diff(original_first, dest_first) + \
-                    color_diff(original_second, dest_second) > \
-                    color_diff(original_first, dest_second) + \
-                    color_diff(original_second, dest_first):
-                self.destination.putpixel(first, dest_second)
-                self.destination.putpixel(second, dest_first)
+        original = self.original.load()
+        destination = self.destination.load()
+        for _ in range(iterations):
+            fx, fy = (random.randrange(self.destination.size[0]),
+                      random.randrange(self.destination.size[1]))
+            sx, sy = (random.randrange(self.destination.size[0]),
+                      random.randrange(self.destination.size[1]))
 
+            original_first = original[fx, fy]
+            original_second = original[sx, sy]
+            destination_first = destination[fx, fy]
+            destination_second = destination[sx, sy]
+
+            if color_diff(original_first, destination_first) + \
+                    color_diff(original_second, destination_second) > \
+                    color_diff(original_first, destination_second) + \
+                    color_diff(original_second, destination_first):
+                destination[fx, fy] = destination_second
+                destination[sx, sy] = destination_first
         self.destination.save(file_name)
         return file_name
