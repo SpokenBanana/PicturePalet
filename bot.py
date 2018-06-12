@@ -36,8 +36,7 @@ def reply_to(mention):
     im = get_image(mention['media'][0])
     im2 = get_image(mention['media'][1])
 
-    palette = Palette(im, im2).generate_picture(
-        file_name='{}.jpg'.format(mention['id']))
+    palette = Palette(im, im2).generate_picture()
 
     api.PostUpdate('@{}'.format(mention['user']['screen_name']),
                    in_reply_to_status_id=mention['id'], media=palette)
