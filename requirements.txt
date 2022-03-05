@@ -7,7 +7,7 @@ APScheduler == 3.5.1
 # bot.py: 2
 # picture_pallet.py: 1
 # test.py: 1
-Pillow == 3.3.2
+Pillow == 9.0.0
 
 # picture_pallet.py: 3
 numba == 0.38.1
